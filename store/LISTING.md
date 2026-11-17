@@ -122,3 +122,57 @@ MindSharpener helps users stay focused by blocking distracting websites during f
 ## Regenerar las capturas
 
 Las capturas se hicieron con la extensión real y datos de ejemplo (sin datos personales). Si cambia la interfaz, vuelve a generarlas antes de actualizar la ficha.
+
+---
+
+# Ficha de Firefox Add-ons (AMO)
+
+Se publica en https://addons.mozilla.org/developers/ con una cuenta de Mozilla (gratis). Los textos son los mismos que los de Chrome.
+
+## Paquetes
+
+`npm run zip:firefox` (o la release de GitHub) genera dos archivos en `.output/`:
+
+- `mindsharpener-<versión>-firefox.zip`: la extensión (Manifest V2, Firefox 140 o superior).
+- `mindsharpener-<versión>-sources.zip`: el código fuente. AMO lo pide porque el paquete está generado con Vite.
+
+ID de la extensión: `mindsharpener@stillmonk` (en `wxt.config.ts`). **No se puede cambiar después de publicar.**
+
+## Probar antes de subir
+
+1. `npm run build:firefox`
+2. En Firefox, abre `about:debugging#/runtime/this-firefox` → **Cargar complemento temporal…** → elige `.output/firefox-mv2/manifest.json`.
+3. Comprueba: sesión de foco y redirección a la página de foco, atajo `Alt+Mayús+F`, pase temporal, opciones de YouTube y horarios.
+
+## Primera publicación
+
+1. **Enviar un nuevo complemento** → **En este sitio** (listado en la tienda).
+2. Sube `mindsharpener-<versión>-firefox.zip` y revisa los avisos del validador.
+3. ¿El código está compilado, minificado o generado? **Sí** → sube `mindsharpener-<versión>-sources.zip`. Notas para los revisores:
+
+```
+Built with WXT (Vite). To reproduce:
+  npm ci
+  npm run zip:firefox
+Requires Node.js 22.18 or newer. The unpacked build is in .output/firefox-mv2.
+```
+
+4. Ficha:
+
+| Campo | Valor |
+|---|---|
+| Nombre / resumen | Salen del manifiesto |
+| Descripción | La misma que la de Chrome (arriba), en inglés y en español |
+| Categoría | Productividad |
+| Etiquetas | productivity, focus, blocker |
+| Licencia | MIT |
+| Política de privacidad | El texto de `PRIVACY.md` |
+| Página web | https://github.com/stillmonk/mindsharpener |
+| Asistencia | https://github.com/stillmonk/mindsharpener/issues |
+| Capturas | `store/screenshots/<idioma>/1…5-*.png` |
+
+5. **Enviar versión.** Con el acceso a todos los sitios la revisión puede ser manual y tardar unos días.
+
+## Versiones nuevas
+
+**Gestionar versiones** → **Subir una nueva versión** → los dos zips de la nueva versión, igual que en la primera publicación.
