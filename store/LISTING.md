@@ -2,7 +2,18 @@
 
 Todo lo necesario para publicar MindSharpener en la Chrome Web Store (también vale para Edge Add-ons). Copia cada bloque en su campo del [panel de desarrollador](https://chrome.google.com/webstore/devconsole).
 
-## Pasos
+**Publicada:** https://chromewebstore.google.com/detail/mindsharpener/abiinaokmjcbkhkgmfbmgienkljkkaml
+(ID de la extensión: `abiinaokmjcbkhkgmfbmgienkljkkaml`)
+
+## Publicar una versión nueva
+
+1. Sube la versión en `package.json` (p. ej. `0.3.1`). El manifiesto la toma de ahí.
+2. Genera el zip con `npm run zip` (o etiqueta `vX.Y.Z` y usa el de la release de GitHub).
+3. En el [panel de desarrollador](https://chrome.google.com/webstore/devconsole), abre MindSharpener → **Paquete** → **Subir paquete nuevo** y elige el zip.
+4. Si cambian permisos, funciones o la interfaz, actualiza aquí la descripción, la justificación de permisos y las capturas, y cópialas también en el panel.
+5. **Enviar a revisión.** Los usuarios reciben la actualización solos cuando se aprueba.
+
+## Primera publicación (ya hecha)
 
 1. Crea la cuenta de desarrollador en el panel (pago único de 5 $) y verifica el correo de contacto.
 2. **Nuevo elemento** → sube `mindsharpener-0.3.0-chrome.zip` (el de la release de GitHub o `npm run zip`).
