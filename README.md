@@ -6,6 +6,8 @@ Extensión de navegador para bloquear las webs que te roban la atención (YouTub
 
 Funciona en Brave, Chrome, Edge y otros navegadores basados en Chromium (Firefox, próximamente).
 
+**[Instálala desde la Chrome Web Store](https://chromewebstore.google.com/detail/mindsharpener/abiinaokmjcbkhkgmfbmgienkljkkaml)** (vale también para Brave y Edge).
+
 ## Así se ve
 
 ![Página de foco: aparece en lugar de la web bloqueada, con el tiempo restante y tu tarea](store/screenshots/es/1-focus-page.png)
@@ -46,7 +48,13 @@ Funciona en Brave, Chrome, Edge y otros navegadores basados en Chromium (Firefox
 - **Español e inglés**, automático según el navegador o a elegir.
 - **Exportar e importar** toda la configuración en JSON.
 
-## Instalación (desde el código)
+## Instalación
+
+La forma más sencilla es instalarla desde la [Chrome Web Store](https://chromewebstore.google.com/detail/mindsharpener/abiinaokmjcbkhkgmfbmgienkljkkaml): se actualiza sola y funciona en Chrome, Brave y Edge.
+
+Opcional: en los detalles de la extensión, activa **Permitir en modo incógnito** para que el bloqueo también funcione ahí.
+
+### Desde el código
 
 **Opción rápida:** descarga el `.zip` de la [última release](https://github.com/stillmonk/mindsharpener/releases/latest) y descomprímelo. Después sigue los pasos de abajo eligiendo esa carpeta.
 
@@ -112,7 +120,8 @@ public/_locales/       # nombre y descripción de la extensión por idioma
 - [x] Fase 1: sesiones de foco, lista de bloqueo, página de foco y estadísticas
 - [x] Fase 2: horarios, lista blanca, YouTube sin distracciones, Pomodoro, fricción para desbloquear e inglés
 - [x] v0.3: perfiles por actividad, pase temporal, progreso con objetivo diario y atajo de teclado
-- [ ] Fase 3: publicación en Chrome Web Store y Firefox Add-ons
+- [x] Fase 3a: publicación en la [Chrome Web Store](https://chromewebstore.google.com/detail/mindsharpener/abiinaokmjcbkhkgmfbmgienkljkkaml)
+- [ ] Fase 3b: publicación en Firefox Add-ons
 - [ ] Fase 4: modo estricto con políticas del navegador
 
 ## Licencia
