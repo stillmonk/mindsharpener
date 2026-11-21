@@ -9,6 +9,7 @@ import {
   type Schedule,
 } from '@/lib/storage';
 import { normalizeDomain } from '@/lib/domains';
+import { ALLOW_CATEGORIES, BLOCK_CATEGORIES, missingDomains, type Category } from '@/lib/categories';
 import { resolveProfile } from '@/lib/profiles';
 import type { T } from '@/lib/i18n';
 import { Section, ghostBtn, inputClass, primaryBtn } from './ui';
@@ -188,6 +189,7 @@ export function ProfilesSection({
             title={t('blockedSites')}
             domains={selected.blocklist}
             presets={BLOCK_PRESETS}
+            categories={BLOCK_CATEGORIES}
             // Bloquear más siempre se puede; quitar, solo sin bloqueo activo.
             canAdd
             canRemove={!locked}
@@ -200,6 +202,7 @@ export function ProfilesSection({
             title={t('allowedSites')}
             domains={selected.allowlist}
             presets={ALLOW_PRESETS}
+            categories={ALLOW_CATEGORIES}
             // En lista blanca es al revés: permitir más relaja el bloqueo.
             canAdd={!locked}
             canRemove
@@ -217,6 +220,7 @@ function DomainList({
   title,
   domains,
   presets,
+  categories,
   canAdd,
   canRemove,
   onChange,
@@ -226,6 +230,7 @@ function DomainList({
   title: string;
   domains: string[];
   presets: { label: string; domains: string[] }[];
+  categories: Category[];
   canAdd: boolean;
   canRemove: boolean;
   onChange: (v: string[]) => void;
@@ -265,19 +270,46 @@ function DomainList({
           </form>
           {error && <p className="text-sm text-red-400 -mt-2">{error}</p>}
 
-          <div className="flex flex-wrap gap-2">
-            {presets
-              .filter((p) => p.domains.some((d) => !domains.includes(d)))
-              .map((p) => (
-                <button
-                  key={p.label}
-                  onClick={() => add(p.domains)}
-                  className="text-xs rounded-full border border-line px-3 py-1 text-muted hover:text-paper hover:border-muted transition-colors"
-                >
-                  + {p.label}
-                </button>
-              ))}
+          <div className="space-y-2">
+            <p className="text-xs text-muted">{t('categoriesLabel')}</p>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((c) => {
+                const missing = missingDomains(c, domains);
+                const done = missing.length === 0;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => add(missing)}
+                    disabled={done}
+                    title={done ? t('categoryDone') : t('categoryAddN', { n: missing.length })}
+                    className="text-xs rounded-full border border-line px-3 py-1 text-muted hover:text-paper hover:border-muted disabled:opacity-40 disabled:hover:text-muted disabled:hover:border-line disabled:cursor-default transition-colors"
+                  >
+                    {done ? '✓' : '+'} {t(c.label)}
+                    {!done && <span className="ml-1.5 tabular-nums opacity-60">{missing.length}</span>}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {presets.some((p) => p.domains.some((d) => !domains.includes(d))) && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted">{t('presetsLabel')}</p>
+              <div className="flex flex-wrap gap-2">
+                {presets
+                  .filter((p) => p.domains.some((d) => !domains.includes(d)))
+                  .map((p) => (
+                    <button
+                      key={p.label}
+                      onClick={() => add(p.domains)}
+                      className="text-xs rounded-full border border-line px-3 py-1 text-muted hover:text-paper hover:border-muted transition-colors"
+                    >
+                      + {p.label}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
         </>
       )}
 

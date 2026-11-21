@@ -12,7 +12,8 @@ export default defineConfig({
     name: '__MSG_extName__',
     description: '__MSG_extDescription__',
     default_locale: 'en',
-    permissions: ['declarativeNetRequest', 'storage', 'alarms', 'notifications'],
+    // contextMenus: el clic derecho «Bloquear esta web». No da acceso a la navegación.
+    permissions: ['declarativeNetRequest', 'storage', 'alarms', 'notifications', 'contextMenus'],
     // Necesario solo para que declarativeNetRequest pueda *redirigir* las webs
     // bloqueadas a nuestra página de foco y para limpiar YouTube.
     // La extensión no lee ni guarda tu navegación.

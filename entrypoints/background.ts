@@ -21,6 +21,7 @@ import {
 } from '@/lib/policy';
 import { loadProfiles, resolveProfile } from '@/lib/profiles';
 import { makeT, resolveLang } from '@/lib/i18n';
+import { domainToBlock, menuItems, parseMenuId, type MenuKind } from '@/lib/menus';
 
 const SESSION_END_ALARM = 'session-end';
 const PASS_END_ALARM = 'pass-end';
@@ -156,6 +157,74 @@ export default defineBackground(() => {
     }
   }
 
+  // Menú contextual «Bloquear esta web». Se rehace cuando cambian los perfiles
+  // o el idioma, solo si cambia lo que muestra. La firma va en storage.session
+  // para no rehacerlo cada vez que se despierta el service worker; se borra
+  // junto con los menús al actualizar o recargar la extensión.
+  async function buildMenus() {
+    const [profiles, settings, stored] = await Promise.all([
+      loadProfiles(),
+      getSettings(),
+      browser.storage.session.get('menus'),
+    ]);
+    const items = menuItems(profiles, makeT(resolveLang(settings.language)));
+    const signature = JSON.stringify(items);
+    if (signature === stored.menus) return;
+    await browser.contextMenus.removeAll();
+    await browser.storage.session.set({ menus: signature });
+    // En Firefox (MV2) el menú del icono se llama "browser_action".
+    const actionContext = import.meta.env.MANIFEST_VERSION === 2 ? 'browser_action' : 'action';
+    const webPages = ['http://*/*', 'https://*/*'];
+    const contextsFor = (kind: MenuKind) =>
+      kind === 'page'
+        ? { contexts: ['page'], documentUrlPatterns: webPages }
+        : kind === 'link'
+          ? { contexts: ['link'], targetUrlPatterns: webPages }
+          : { contexts: [actionContext] };
+    for (const item of items) {
+      browser.contextMenus.create({
+        id: item.id,
+        parentId: item.parentId,
+        title: item.title,
+        ...contextsFor(item.kind),
+      } as Parameters<typeof browser.contextMenus.create>[0]);
+    }
+  }
+  const scheduleMenus = () => {
+    enqueue(buildMenus);
+  };
+
+  async function blockFromMenu(menuId: string | number, url: string | undefined) {
+    const target = parseMenuId(menuId);
+    if (!target) return;
+    const t = makeT(resolveLang((await getSettings()).language));
+    const domain = domainToBlock(url);
+    if (!domain) {
+      notify(t('nCantBlockTitle'), t('nCantBlockBody'));
+      return;
+    }
+    const profiles = await loadProfiles();
+    const profile = profiles.find((p) => p.id === target.profileId);
+    if (!profile || profile.mode !== 'blocklist') return;
+
+    const covering = profile.blocklist.find((d) => coversHost(d, domain));
+    if (covering) {
+      notify(t('nAlreadyTitle'), t('nAlreadyBody', { domain: covering, profile: profile.name }));
+      return;
+    }
+    await profilesItem.setValue(
+      profiles.map((p) => (p.id === profile.id ? { ...p, blocklist: [...p.blocklist, domain] } : p)),
+    );
+    await sync(); // reglas al día antes de recargar
+    const state = await blockingStateItem.getValue();
+    const activeNow = state.active && (state.profileIds ?? []).includes(profile.id);
+    if (activeNow) await reloadTabs([domain]);
+    notify(
+      t('nBlockedTitle', { domain }),
+      t(activeNow ? 'nBlockedNow' : 'nBlockedLater', { profile: profile.name }),
+    );
+  }
+
   async function grantPass(url: string): Promise<PassResponse> {
     const now = Date.now();
     const raw = await sessionItem.getValue();
@@ -253,10 +322,16 @@ export default defineBackground(() => {
   }
 
   sessionItem.watch(schedule);
-  profilesItem.watch(schedule);
+  profilesItem.watch(() => {
+    schedule();
+    scheduleMenus();
+  });
   schedulesItem.watch(schedule);
   browser.storage.onChanged.addListener((changes, area) => {
-    if (area === 'local' && 'settings' in changes) schedule();
+    if (area === 'local' && 'settings' in changes) {
+      schedule();
+      scheduleMenus();
+    }
   });
   browser.alarms.onAlarm.addListener((alarm) => {
     if ([SESSION_END_ALARM, PASS_END_ALARM, TICK_ALARM].includes(alarm.name)) schedule();
@@ -267,9 +342,15 @@ export default defineBackground(() => {
       return true; // respuesta asíncrona
     }
   });
+  browser.contextMenus.onClicked.addListener((info, tab) => {
+    const kind = parseMenuId(info.menuItemId)?.kind;
+    const url = kind === 'link' ? info.linkUrl : (info.pageUrl ?? tab?.url);
+    enqueue(() => blockFromMenu(info.menuItemId, url));
+  });
   browser.runtime.onStartup.addListener(schedule);
   browser.runtime.onInstalled.addListener(schedule);
 
   ensureTick();
   schedule();
+  scheduleMenus();
 });

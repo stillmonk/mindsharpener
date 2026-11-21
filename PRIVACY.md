@@ -23,7 +23,8 @@ Puedes exportar estos datos a un archivo JSON y borrarlos desinstalando la exten
   - cuando caduca un pase temporal, la extensión revisa las direcciones de las pestañas abiertas para recargar solo las de esa web, de modo que vuelva a aparecer la página de foco. Esta comprobación se hace en el momento y no se guarda.
 - **storage**: guardar lo descrito arriba.
 - **alarms**: saber cuándo termina una sesión, un descanso, un horario o un pase.
-- **notifications**: avisarte cuando termina una sesión o un descanso.
+- **notifications**: avisarte cuando termina una sesión o un descanso, o confirmar que has bloqueado una web desde el menú contextual.
+- **contextMenus**: añadir «Bloquear esta web» al clic derecho. Solo se usa la dirección de la página o del enlace en el que pulsas, y solo para añadir su dominio a tu lista; no da acceso a tu navegación.
 
 El código es abierto: puedes comprobar todo lo anterior en https://github.com/stillmonk/mindsharpener.
 
@@ -54,6 +55,7 @@ You can export this data to a JSON file, and delete it by uninstalling the exten
   - when a temporary pass expires, the extension checks the addresses of open tabs to reload only those on that site, so the focus page shows up again. This check happens on the spot and is not stored.
 - **storage**: to save what is described above.
 - **alarms**: to know when a session, break, schedule or pass ends.
-- **notifications**: to tell you when a session or break ends.
+- **notifications**: to tell you when a session or break ends, or to confirm that you blocked a site from the context menu.
+- **contextMenus**: to add “Block this site” to the right-click menu. Only the address of the page or link you click is used, and only to add its domain to your list; it gives no access to your browsing.
 
 The code is open source: you can verify all of the above at https://github.com/stillmonk/mindsharpener.
