@@ -1,5 +1,7 @@
 import { buildRules, domainRegex, SHORTS_REGEX } from '../lib/rules.ts';
 import { normalizeDomain } from '../lib/domains.ts';
+import { ALLOW_CATEGORIES, BLOCK_CATEGORIES, missingDomains } from '../lib/categories.ts';
+import { domainToBlock, menuItems, parseMenuId } from '../lib/menus.ts';
 import { isScheduleActive, scheduleEnd } from '../lib/schedule.ts';
 import {
   currentPasses,
@@ -115,6 +117,37 @@ check('sábado 01:00 (sigue)', isScheduleActive(night, at('2026-11-14T01:00')), 
 check('sábado 03:00', isScheduleActive(night, at('2026-11-14T03:00')), false);
 check('jueves 23:00', isScheduleActive(night, at('2026-11-12T23:00')), false);
 check('fin noche = sábado 02:00', new Date(scheduleEnd(night, at('2026-11-13T23:00'))).toString(), at('2026-11-14T02:00').toString());
+
+// Categorías
+const allCats = [...BLOCK_CATEGORIES, ...ALLOW_CATEGORIES];
+check('categorías: ids únicos', new Set(allCats.map((c) => c.id)).size, allCats.length);
+for (const c of allCats) {
+  check(`categoría ${c.id}: dominios limpios`, c.domains.filter((d) => normalizeDomain(d) !== d), []);
+  check(`categoría ${c.id}: sin duplicados`, c.domains.length - new Set(c.domains).size, 0);
+  check(`categoría ${c.id}: sin redundancias`, c.domains.filter((d) => c.domains.some((o) => o !== d && (d.endsWith(`.${o}`)))), []);
+}
+const blockSet = new Set(BLOCK_CATEGORIES.flatMap((c) => c.domains));
+check('categorías: nada a la vez en bloquear y permitir', ALLOW_CATEGORIES.flatMap((c) => c.domains).filter((d) => blockSet.has(d)), []);
+const office = ALLOW_CATEGORIES.find((c) => c.id === 'office')!;
+check('categoría: google.com cubre docs.google.com', missingDomains(office, ['google.com']).includes('docs.google.com'), false);
+check('categoría: completa', missingDomains(office, office.domains), []);
+
+// Menú contextual
+const tt = (key: string) => key;
+const prof = (id: string, mode: 'blocklist' | 'allowlist') => ({ id, name: id.toUpperCase(), mode, blocklist: [], allowlist: [] });
+check('menú: sin perfiles de lista negra', menuItems([prof('w', 'allowlist')], tt as never), []);
+check('menú: un perfil, sin submenú', menuItems([prof('general', 'blocklist'), prof('w', 'allowlist')], tt as never).map((i) => i.id), ['page:general', 'link:general', 'action:general']);
+const multi = menuItems([prof('a', 'blocklist'), prof('b', 'blocklist')], tt as never);
+check('menú: varios perfiles, submenú', multi.filter((i) => i.kind === 'page').map((i) => `${i.parentId ?? '-'}>${i.id}:${i.title}`), ['->page:menuBlockPageIn', 'page>page:a:A', 'page>page:b:B']);
+check('menú: id', parseMenuId('link:general'), { kind: 'link', profileId: 'general' });
+check('menú: id raíz', parseMenuId('page'), null);
+check('menú: id extraño', parseMenuId('otro:x'), null);
+check('bloquear: url', domainToBlock('https://www.YouTube.com/watch?v=1'), 'youtube.com');
+check('bloquear: subdominio', domainToBlock('https://docs.google.com/x'), 'docs.google.com');
+check('bloquear: chrome://', domainToBlock('chrome://extensions'), null);
+check('bloquear: file://', domainToBlock('file:///home/a.html'), null);
+check('bloquear: localhost', domainToBlock('http://localhost:3000/'), null);
+check('bloquear: sin url', domainToBlock(undefined), null);
 
 if (fail) throw new Error(`${fail} pruebas fallidas`);
 console.log('\nTodo OK');

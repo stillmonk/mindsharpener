@@ -36,6 +36,8 @@ Funciona en Brave, Chrome, Edge y otros navegadores basados en Chromium, y en Fi
 - **Sesiones de foco** de 25, 50, 90 minutos o la duración que elijas, con la tarea en la que vas a trabajar.
 - **Perfiles por actividad** («Estudio», «Trabajo»…), cada uno con su lista negra o blanca. Eliges el perfil al empezar la sesión y cada horario puede usar el suyo; si coinciden varios, gana lo más estricto.
 - **Lista negra o lista blanca**: bloquea solo ciertas webs, o todo excepto las que necesitas para trabajar.
+- **Categorías**: añade de golpe redes sociales, vídeo, noticias, compras, juegos o apuestas a la lista negra, o búsqueda, programación, ofimática, correo e IA a la blanca. Las listas van dentro de la extensión.
+- **Clic derecho «Bloquear esta web»**: en una página, en un enlace o en el icono, añade su dominio al perfil que elijas.
 - **Horarios**: el bloqueo se activa solo (p. ej. de lunes a viernes de 9:00 a 13:00), también en franjas que cruzan la medianoche.
 - **Pase temporal**: si de verdad necesitas una web bloqueada, pide unos minutos (por defecto 5 min, 2 al día) pagando la misma fricción que para rendirte. Al acabar, la pestaña vuelve sola a la página de foco.
 - **Atajo de teclado**: `Alt+Mayús+F` («F de foco») abre el popup con el cursor en la tarea; Enter empieza la sesión. Se puede cambiar en `brave://extensions/shortcuts`.
@@ -109,6 +111,8 @@ components/            # piezas compartidas (fricción para rendirse o pedir un 
 lib/
   rules.ts             # convierte la configuración en reglas declarativeNetRequest
   policy.ts            # lógica pura: combinar perfiles, pases, historial y rachas
+  categories.ts        # listas de webs por categoría
+  menus.ts             # menú contextual «Bloquear esta web» (lógica pura)
   profiles.ts          # perfiles y migración desde la v0.2
   schedule.ts          # lógica de horarios
   session.ts           # sesiones de foco y descansos

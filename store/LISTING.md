@@ -46,6 +46,8 @@ FUNCIONES
 • Sesiones de foco de 25, 50, 90 minutos o la duración que quieras.
 • Perfiles por actividad: unas webs bloqueadas para estudiar, otras para trabajar.
 • Lista negra (bloquea solo algunas webs) o lista blanca (bloquea todo menos lo que necesitas).
+• Categorías: añade de golpe redes sociales, vídeo, noticias, compras, juegos o apuestas.
+• Clic derecho «Bloquear esta web»: bloquea la página o el enlace en el que estás, sin ir a Ajustes.
 • Horarios: el bloqueo se activa solo, por ejemplo de lunes a viernes de 9:00 a 13:00.
 • Pomodoro: descansos cortos y largos encadenados, con avisos.
 • YouTube sin distracciones: bloquea los Shorts y oculta el inicio, las recomendaciones y los comentarios.
@@ -71,6 +73,8 @@ FEATURES
 • Focus sessions of 25, 50, 90 minutes or any length you like.
 • Profiles per activity: block some sites while you study and others while you work.
 • Blocklist (block only some sites) or allowlist (block everything except what you need).
+• Categories: add social media, video, news, shopping, games or gambling in one click.
+• Right-click “Block this site”: block the page or link you're on without opening Settings.
 • Schedules: blocking turns on by itself, e.g. Monday to Friday from 9:00 to 13:00.
 • Pomodoro: chained short and long breaks, with notifications.
 • Distraction-free YouTube: block Shorts and hide the home feed, recommendations and comments.
@@ -101,7 +105,8 @@ MindSharpener helps users stay focused by blocking distracting websites during f
 | `declarativeNetRequest` | `Core feature: redirects the websites on the user's block lists to the extension's focus page during focus sessions and schedules. Rules are built only from the user's own lists.` |
 | `storage` | `Stores the user's profiles, block/allow lists, schedules, settings, the current session and daily totals (focus minutes, sessions, blocked attempts) locally. Nothing is sent anywhere.` |
 | `alarms` | `Ends focus sessions, breaks, temporary passes and schedules on time, even if the service worker was stopped.` |
-| `notifications` | `Tells the user when a focus session or a break has finished.` |
+| `notifications` | `Tells the user when a focus session or a break has finished, and confirms when a site was blocked from the context menu.` |
+| `contextMenus` | `Adds "Block this site" to the right-click menu (page, link and toolbar icon). When the user clicks it, the domain of that page or link is added to the chosen block list. Nothing else is read or stored.` |
 | Host permission `<all_urls>` | `The user can block any website, so redirect rules must be able to apply to any URL. On youtube.com a content script hides Shorts, the home feed, recommendations and comments when the user enables those options. When a temporary pass expires, open tabs on that site are reloaded so the block applies again. No page content or browsing data is read, stored or transmitted.` |
 
 **Remote code:** No, I am not using remote code.
