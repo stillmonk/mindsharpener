@@ -7,7 +7,7 @@ export default defineConfig({
   vite: () => ({
     plugins: [tailwindcss()],
   }),
-  manifest: {
+  manifest: ({ browser, manifestVersion }) => ({
     // Nombre y descripción traducidos en public/_locales/<idioma>/messages.json
     name: '__MSG_extName__',
     description: '__MSG_extDescription__',
@@ -28,10 +28,23 @@ export default defineConfig({
     },
     // Un solo atajo, fácil de recordar: Alt+Mayús+F («F de foco») abre el popup
     // con el cursor en la tarea; Enter empieza la sesión.
+    // En Manifest V2 (Firefox) el comando del popup se llama _execute_browser_action.
     commands: {
-      _execute_action: {
+      [manifestVersion === 2 ? '_execute_browser_action' : '_execute_action']: {
         suggested_key: { default: 'Alt+Shift+F', mac: 'Alt+Shift+F' },
       },
     },
-  },
+    ...(browser === 'firefox' && {
+      browser_specific_settings: {
+        gecko: {
+          // No se puede cambiar una vez publicada en addons.mozilla.org.
+          id: 'mindsharpener@stillmonk',
+          // 140 es la primera versión que entiende data_collection_permissions.
+          strict_min_version: '140.0',
+          // Obligatorio en AMO: la extensión no recoge ningún dato.
+          data_collection_permissions: { required: ['none'] },
+        },
+      },
+    }),
+  }),
 });

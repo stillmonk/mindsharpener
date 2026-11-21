@@ -4,7 +4,7 @@ Extensión de navegador para bloquear las webs que te roban la atención (YouTub
 
 **Gratis, de código abierto y 100% local.** Sin cuentas, sin servidores, sin registros. Ver [PRIVACY.md](PRIVACY.md).
 
-Funciona en Brave, Chrome, Edge y otros navegadores basados en Chromium (Firefox, próximamente).
+Funciona en Brave, Chrome, Edge y otros navegadores basados en Chromium, y en Firefox 140 o superior (pendiente de publicar en Firefox Add-ons).
 
 **[Instálala desde la Chrome Web Store](https://chromewebstore.google.com/detail/mindsharpener/abiinaokmjcbkhkgmfbmgienkljkkaml)** (vale también para Brave y Edge).
 
@@ -74,6 +74,8 @@ Después, en Brave (o Chrome):
 3. Pulsa **Cargar descomprimida** y elige la carpeta descomprimida del `.zip` o, si la has compilado tú, `.output/chrome-mv3`.
 4. Opcional: en los detalles de la extensión, activa **Permitir en modo incógnito** para que el bloqueo también funcione ahí.
 
+En Firefox: `npm run build:firefox`, abre `about:debugging#/runtime/this-firefox`, pulsa **Cargar complemento temporal…** y elige `.output/firefox-mv2/manifest.json` (se quita al cerrar Firefox).
+
 ## Desarrollo
 
 ```bash
@@ -81,6 +83,8 @@ npm run dev       # abre un navegador con la extensión y recarga en caliente
 npm run compile   # comprobación de tipos
 npm test          # pruebas de dominios, reglas, horarios, perfiles, pases e historial
 npm run zip       # genera el .zip para publicar
+npm run build:firefox  # compila para Firefox en .output/firefox-mv2
+npm run zip:firefox    # genera el .zip de Firefox y el de código fuente para AMO
 ```
 
 > `npm run dev` abre Chrome por defecto. Para usar Brave, crea un archivo `web-ext.config.ts` (está en `.gitignore`):
