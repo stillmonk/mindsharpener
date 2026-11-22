@@ -13,6 +13,28 @@ Todo lo necesario para publicar MindSharpener en la Chrome Web Store (también v
 4. Si cambian permisos, funciones o la interfaz, actualiza aquí la descripción, la justificación de permisos y las capturas, y cópialas también en el panel.
 5. **Enviar a revisión.** Los usuarios reciben la actualización solos cuando se aprueba.
 
+## Notas de la versión 0.4.0
+
+Las tiendas tienen la 0.3.0, así que estas notas incluyen también lo de la 0.3.1. Al subirla, añade `sidePanel` a la justificación de permisos (tabla de abajo) y actualiza las dos descripciones.
+
+```
+Novedades de la 0.4.0
+• Nuevo diseño, más tranquilo, con un anillo de progreso para el foco de hoy.
+• Panel lateral: deja la sesión a la vista mientras trabajas (nuevo permiso «sidePanel», solo para esto).
+• Redes sociales sin feed: oculta el inicio, los Reels, Explorar o las tendencias de Instagram, X, Reddit, Facebook y LinkedIn (experimental).
+• Lista de webs bloqueadas más ordenada, con filtro.
+• Clic derecho «Bloquear esta web» y categorías predefinidas (redes sociales, vídeo, noticias…).
+```
+
+```
+What's new in 0.4.0
+• New, calmer design with a progress ring for today's focus.
+• Side panel: keep your session in view while you work (new "sidePanel" permission, used only for this).
+• Social media without feeds: hide the home feed, Reels, Explore or trends on Instagram, X, Reddit, Facebook and LinkedIn (experimental).
+• Tidier blocked-sites list, with a filter.
+• Right-click "Block this site" and predefined categories (social media, video, news…).
+```
+
 ## Primera publicación (ya hecha)
 
 1. Crea la cuenta de desarrollador en el panel (pago único de 5 $) y verifica el correo de contacto.
@@ -50,7 +72,8 @@ FUNCIONES
 • Clic derecho «Bloquear esta web»: bloquea la página o el enlace en el que estás, sin ir a Ajustes.
 • Horarios: el bloqueo se activa solo, por ejemplo de lunes a viernes de 9:00 a 13:00.
 • Pomodoro: descansos cortos y largos encadenados, con avisos.
-• YouTube sin distracciones: bloquea los Shorts y oculta el inicio, las recomendaciones y los comentarios.
+• Redes sociales sin distracciones: en YouTube bloquea los Shorts y oculta el inicio, las recomendaciones y los comentarios. En Instagram, X, Reddit, Facebook y LinkedIn quita el feed, los Reels, Explorar o las tendencias (experimental).
+• Panel lateral: deja la sesión a la vista junto a la web en la que trabajas.
 • Fricción para rendirte: elige qué cuesta terminar antes de tiempo (confirmar, esperar, escribir una frase incómoda o modo estricto).
 • Pase temporal: si de verdad necesitas una web, pide 5 minutos. Tendrás que ganártelo, y al acabar se vuelve a bloquear sola.
 • Progreso: tiempo de foco de hoy frente a tu objetivo diario, racha de días y gráfica de 7 o 30 días.
@@ -77,7 +100,8 @@ FEATURES
 • Right-click “Block this site”: block the page or link you're on without opening Settings.
 • Schedules: blocking turns on by itself, e.g. Monday to Friday from 9:00 to 13:00.
 • Pomodoro: chained short and long breaks, with notifications.
-• Distraction-free YouTube: block Shorts and hide the home feed, recommendations and comments.
+• Distraction-free social media: on YouTube, block Shorts and hide the home feed, recommendations and comments. On Instagram, X, Reddit, Facebook and LinkedIn, remove the feed, Reels, Explore or trends (experimental).
+• Side panel: keep your session in view next to the site you are working on.
 • Friction to quit: choose what it takes to end early (confirm, wait, type an uncomfortable phrase, or strict mode).
 • Temporary pass: if you really need a site, ask for 5 minutes. You have to earn it, and it blocks itself again when time is up.
 • Progress: today's focus time against your daily goal, day streak and a 7 or 30-day chart.
@@ -95,7 +119,7 @@ La tienda pide estas respuestas en inglés.
 **Single purpose**
 
 ```
-MindSharpener helps users stay focused by blocking distracting websites during focus sessions or scheduled times, and by hiding distracting parts of YouTube.
+MindSharpener helps users stay focused by blocking distracting websites during focus sessions or scheduled times, and by hiding distracting parts of YouTube and social networks (feeds, Shorts, Reels).
 ```
 
 **Permission justifications**
@@ -107,7 +131,8 @@ MindSharpener helps users stay focused by blocking distracting websites during f
 | `alarms` | `Ends focus sessions, breaks, temporary passes and schedules on time, even if the service worker was stopped.` |
 | `notifications` | `Tells the user when a focus session or a break has finished, and confirms when a site was blocked from the context menu.` |
 | `contextMenus` | `Adds "Block this site" to the right-click menu (page, link and toolbar icon). When the user clicks it, the domain of that page or link is added to the chosen block list. Nothing else is read or stored.` |
-| Host permission `<all_urls>` | `The user can block any website, so redirect rules must be able to apply to any URL. On youtube.com a content script hides Shorts, the home feed, recommendations and comments when the user enables those options. When a temporary pass expires, open tabs on that site are reloaded so the block applies again. No page content or browsing data is read, stored or transmitted.` |
+| `sidePanel` | `Shows the extension's own focus timer and session controls in the browser side panel, so the user can keep the session in view while working. It does not access any website.` |
+| Host permission `<all_urls>` | `The user can block any website, so redirect rules must be able to apply to any URL. On youtube.com a content script hides Shorts, the home feed, recommendations and comments when the user enables those options. On instagram.com, x.com, reddit.com, facebook.com and linkedin.com a content script hides the feed, Reels, Explore or trends when the user enables those options; it only checks the page path and never reads posts or messages. When a temporary pass expires, open tabs on that site are reloaded so the block applies again. No page content or browsing data is read, stored or transmitted.` |
 
 **Remote code:** No, I am not using remote code.
 

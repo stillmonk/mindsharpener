@@ -4,9 +4,9 @@ Extensión de navegador para bloquear las webs que te roban la atención (YouTub
 
 **Gratis, de código abierto y 100% local.** Sin cuentas, sin servidores, sin registros. Ver [PRIVACY.md](PRIVACY.md).
 
-Funciona en Brave, Chrome, Edge y otros navegadores basados en Chromium, y en Firefox 140 o superior (pendiente de publicar en Firefox Add-ons).
+Funciona en Brave, Chrome, Edge y otros navegadores basados en Chromium, y en Firefox 140 o superior.
 
-**[Instálala desde la Chrome Web Store](https://chromewebstore.google.com/detail/mindsharpener/abiinaokmjcbkhkgmfbmgienkljkkaml)** (vale también para Brave y Edge).
+**[Instálala desde la Chrome Web Store](https://chromewebstore.google.com/detail/mindsharpener/abiinaokmjcbkhkgmfbmgienkljkkaml)** (vale también para Brave y Edge) o **[desde Firefox Add-ons](https://addons.mozilla.org/firefox/addon/mindsharpener/)**.
 
 ## Así se ve
 
@@ -40,8 +40,9 @@ Funciona en Brave, Chrome, Edge y otros navegadores basados en Chromium, y en Fi
 - **Clic derecho «Bloquear esta web»**: en una página, en un enlace o en el icono, añade su dominio al perfil que elijas.
 - **Horarios**: el bloqueo se activa solo (p. ej. de lunes a viernes de 9:00 a 13:00), también en franjas que cruzan la medianoche.
 - **Pase temporal**: si de verdad necesitas una web bloqueada, pide unos minutos (por defecto 5 min, 2 al día) pagando la misma fricción que para rendirte. Al acabar, la pestaña vuelve sola a la página de foco.
+- **Panel lateral** (Chrome, Brave y Edge; barra lateral en Firefox): deja la sesión siempre a la vista junto a la web en la que trabajas.
 - **Atajo de teclado**: `Alt+Mayús+F` («F de foco») abre el popup con el cursor en la tarea; Enter empieza la sesión. Se puede cambiar en `brave://extensions/shortcuts`.
-- **Redes sociales sin distracciones**: en YouTube bloquea Shorts y oculta el inicio, las recomendaciones y los comentarios; en Instagram, X, Reddit, Facebook y LinkedIn quita el feed de inicio, los Reels, Explorar o las tendencias. Durante el foco o siempre, cada red por separado.
+- **Redes sociales sin distracciones**: en YouTube bloquea Shorts y oculta el inicio, las recomendaciones y los comentarios; en Instagram, X, Reddit, Facebook y LinkedIn quita el feed de inicio, los Reels, Explorar o las tendencias (experimental: avisa en un issue si algo deja de ocultarse). Durante el foco o siempre, cada red por separado.
 - **Pomodoro**: descansos cortos y largos encadenados, con notificaciones.
 - **Fricción para rendirse**: elige qué cuesta terminar antes de tiempo (confirmar, esperar, escribir una frase incómoda o modo estricto).
 - **Sin trampas fáciles**: con el bloqueo activo puedes endurecer las reglas, pero no relajarlas.
@@ -52,7 +53,7 @@ Funciona en Brave, Chrome, Edge y otros navegadores basados en Chromium, y en Fi
 
 ## Instalación
 
-La forma más sencilla es instalarla desde la [Chrome Web Store](https://chromewebstore.google.com/detail/mindsharpener/abiinaokmjcbkhkgmfbmgienkljkkaml): se actualiza sola y funciona en Chrome, Brave y Edge.
+La forma más sencilla es instalarla desde la [Chrome Web Store](https://chromewebstore.google.com/detail/mindsharpener/abiinaokmjcbkhkgmfbmgienkljkkaml) (Chrome, Brave y Edge) o desde [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/mindsharpener/). Así se actualiza sola.
 
 Opcional: en los detalles de la extensión, activa **Permitir en modo incógnito** para que el bloqueo también funcione ahí.
 
@@ -106,9 +107,10 @@ entrypoints/
   youtube.content.ts   # oculta Shorts, inicio, recomendaciones y comentarios
   feeds.content.ts     # quita el feed de Instagram, X, Reddit, Facebook y LinkedIn
   popup/               # temporizador, perfil, progreso de hoy, empezar/terminar sesión
+  sidepanel/           # el mismo popup en el panel lateral
   options/             # progreso, perfiles, horarios, redes sociales, Pomodoro, fricción, pases, datos
   blocked/             # página que ves al intentar entrar en una web bloqueada (y pase temporal)
-components/            # piezas compartidas (fricción para rendirse o pedir un pase)
+components/            # piezas compartidas (anillo de progreso, fricción para rendirse o pedir un pase)
 lib/
   rules.ts             # convierte la configuración en reglas declarativeNetRequest
   policy.ts            # lógica pura: combinar perfiles, pases, historial y rachas
@@ -130,7 +132,8 @@ public/_locales/       # nombre y descripción de la extensión por idioma
 - [x] Fase 2: horarios, lista blanca, YouTube sin distracciones, Pomodoro, fricción para desbloquear e inglés
 - [x] v0.3: perfiles por actividad, pase temporal, progreso con objetivo diario y atajo de teclado
 - [x] Fase 3a: publicación en la [Chrome Web Store](https://chromewebstore.google.com/detail/mindsharpener/abiinaokmjcbkhkgmfbmgienkljkkaml)
-- [ ] Fase 3b: publicación en Firefox Add-ons
+- [x] Fase 3b: publicación en [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/mindsharpener/)
+- [x] v0.4: rediseño, panel lateral y redes sociales sin feed
 - [ ] Fase 4: modo estricto con políticas del navegador
 
 ## Licencia
