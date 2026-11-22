@@ -1,4 +1,5 @@
 import { storage } from '#imports';
+import { DEFAULT_FEEDS, type FeedSiteId } from './feeds';
 
 // Todo se guarda en local (chrome.storage.local). Nada sale de tu navegador.
 
@@ -51,6 +52,9 @@ export interface YoutubeSettings {
   always: boolean;
 }
 
+/** Opciones de una red social: cada clave es una opción de lib/feeds.ts, más `always`. */
+export type FeedSiteSettings = Record<string, boolean>;
+
 export interface Settings {
   friction: Friction;
   waitSeconds: number;
@@ -62,6 +66,8 @@ export interface Settings {
     autoStartFocus: boolean;
   };
   youtube: YoutubeSettings;
+  /** Resto de redes sociales (YouTube va aparte por compatibilidad). */
+  feeds: Record<Exclude<FeedSiteId, 'youtube'>, FeedSiteSettings>;
   /** Pases temporales para entrar en una web bloqueada. perDay = 0: desactivados. */
   pass: { minutes: number; perDay: number };
   dailyGoalMinutes: number;
@@ -128,6 +134,7 @@ export const DEFAULT_SETTINGS: Settings = {
     comments: false,
     always: false,
   },
+  feeds: DEFAULT_FEEDS,
   pass: { minutes: 5, perDay: 2 },
   dailyGoalMinutes: 120,
   lastProfileId: DEFAULT_PROFILE_ID,
@@ -209,6 +216,12 @@ export function withDefaults(s: Partial<Settings> | null | undefined): Settings 
     pomodoro: { ...DEFAULT_SETTINGS.pomodoro, ...s?.pomodoro },
     pass: { ...DEFAULT_SETTINGS.pass, ...s?.pass },
     youtube: { ...DEFAULT_SETTINGS.youtube, ...s?.youtube },
+    feeds: Object.fromEntries(
+      Object.entries(DEFAULT_SETTINGS.feeds).map(([id, d]) => [
+        id,
+        { ...d, ...(s?.feeds as Settings['feeds'] | undefined)?.[id as keyof Settings['feeds']] },
+      ]),
+    ) as Settings['feeds'],
   };
 }
 

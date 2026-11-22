@@ -216,6 +216,9 @@ export function ProfilesSection({
   );
 }
 
+/** Webs que se ven con la lista plegada. */
+const LIST_PREVIEW = 6;
+
 function DomainList({
   title,
   domains,
@@ -239,6 +242,16 @@ function DomainList({
 }) {
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
+  const [expanded, setExpanded] = useState(false);
+  const [query, setQuery] = useState('');
+  // Con la lista vacía, los atajos se ven abiertos; después, plegados.
+  const [quickOpen] = useState(domains.length === 0);
+
+  const sorted = [...domains].sort();
+  const long = sorted.length > LIST_PREVIEW;
+  const q = query.trim().toLowerCase();
+  const matches = q ? sorted.filter((d) => d.includes(q)) : sorted;
+  const shown = expanded || q ? matches : matches.slice(0, LIST_PREVIEW);
 
   const add = (values: string[]) => onChange([...new Set([...domains, ...values])]);
 
@@ -270,46 +283,52 @@ function DomainList({
           </form>
           {error && <p className="text-sm text-red-400 -mt-2">{error}</p>}
 
-          <div className="space-y-2">
-            <p className="text-xs text-muted">{t('categoriesLabel')}</p>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((c) => {
-                const missing = missingDomains(c, domains);
-                const done = missing.length === 0;
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => add(missing)}
-                    disabled={done}
-                    title={done ? t('categoryDone') : t('categoryAddN', { n: missing.length })}
-                    className="text-xs rounded-full border border-line px-3 py-1 text-muted hover:text-paper hover:border-muted disabled:opacity-40 disabled:hover:text-muted disabled:hover:border-line disabled:cursor-default transition-colors"
-                  >
-                    {done ? '✓' : '+'} {t(c.label)}
-                    {!done && <span className="ml-1.5 tabular-nums opacity-60">{missing.length}</span>}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {presets.some((p) => p.domains.some((d) => !domains.includes(d))) && (
+          <details open={quickOpen} className="group space-y-3">
+            <summary className="cursor-pointer select-none text-xs text-muted hover:text-paper transition-colors list-none flex items-center gap-1.5">
+              <span className="inline-block transition-transform group-open:rotate-90">›</span>
+              {t('quickAdd')}
+            </summary>
             <div className="space-y-2">
-              <p className="text-xs text-muted">{t('presetsLabel')}</p>
+              <p className="text-xs text-muted">{t('categoriesLabel')}</p>
               <div className="flex flex-wrap gap-2">
-                {presets
-                  .filter((p) => p.domains.some((d) => !domains.includes(d)))
-                  .map((p) => (
+                {categories.map((c) => {
+                  const missing = missingDomains(c, domains);
+                  const done = missing.length === 0;
+                  return (
                     <button
-                      key={p.label}
-                      onClick={() => add(p.domains)}
-                      className="text-xs rounded-full border border-line px-3 py-1 text-muted hover:text-paper hover:border-muted transition-colors"
+                      key={c.id}
+                      onClick={() => add(missing)}
+                      disabled={done}
+                      title={done ? t('categoryDone') : t('categoryAddN', { n: missing.length })}
+                      className="text-xs rounded-full border border-line px-3 py-1 text-muted hover:text-paper hover:border-muted disabled:opacity-40 disabled:hover:text-muted disabled:hover:border-line disabled:cursor-default transition-colors"
                     >
-                      + {p.label}
+                      {done ? '✓' : '+'} {t(c.label)}
+                      {!done && <span className="ml-1.5 tabular-nums opacity-60">{missing.length}</span>}
                     </button>
-                  ))}
+                  );
+                })}
               </div>
             </div>
-          )}
+
+            {presets.some((p) => p.domains.some((d) => !domains.includes(d))) && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted">{t('presetsLabel')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {presets
+                    .filter((p) => p.domains.some((d) => !domains.includes(d)))
+                    .map((p) => (
+                      <button
+                        key={p.label}
+                        onClick={() => add(p.domains)}
+                        className="text-xs rounded-full border border-line px-3 py-1 text-muted hover:text-paper hover:border-muted transition-colors"
+                      >
+                        + {p.label}
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
+          </details>
         </>
       )}
 
@@ -318,20 +337,50 @@ function DomainList({
       {domains.length === 0 ? (
         <p className="text-sm text-muted">{t('emptyList')}</p>
       ) : (
-        <ul className="rounded-xl border border-line divide-y divide-line overflow-hidden">
-          {[...domains].sort().map((d) => (
-            <li key={d} className="flex items-center justify-between px-4 py-2.5 bg-panel">
-              <span className="text-sm">{d}</span>
-              <button
-                onClick={() => onChange(domains.filter((x) => x !== d))}
-                disabled={!canRemove}
-                className="text-xs text-muted hover:text-red-400 disabled:opacity-30 disabled:hover:text-muted disabled:cursor-not-allowed transition-colors"
-              >
-                {t('remove')}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-muted tabular-nums">
+              {sorted.length === 1 ? t('listCountOne') : t('listCount', { n: sorted.length })}
+            </span>
+            {long && (
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t('filterPlaceholder')}
+                aria-label={t('filterPlaceholder')}
+                className={`w-44 !py-1 text-xs ${inputClass}`}
+              />
+            )}
+          </div>
+          {matches.length === 0 ? (
+            <p className="text-sm text-muted">{t('noMatches')}</p>
+          ) : (
+            <ul className="rounded-xl border border-line divide-y divide-line overflow-hidden">
+              {shown.map((d) => (
+                <li key={d} className="flex items-center justify-between px-4 py-2.5 bg-panel">
+                  <span className="text-sm">{d}</span>
+                  <button
+                    onClick={() => onChange(domains.filter((x) => x !== d))}
+                    disabled={!canRemove}
+                    className="text-xs text-muted hover:text-red-400 disabled:opacity-30 disabled:hover:text-muted disabled:cursor-not-allowed transition-colors"
+                  >
+                    {t('remove')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {long && !q && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              aria-expanded={expanded}
+              className="self-start text-xs text-muted hover:text-paper transition-colors"
+            >
+              {expanded ? `${t('showLess')} ▴` : `${t('showAll', { n: sorted.length })} ▾`}
+            </button>
+          )}
+        </div>
       )}
       <p className="text-xs text-muted">{t('subdomainsNote')}</p>
     </Section>

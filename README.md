@@ -41,7 +41,7 @@ Funciona en Brave, Chrome, Edge y otros navegadores basados en Chromium, y en Fi
 - **Horarios**: el bloqueo se activa solo (p. ej. de lunes a viernes de 9:00 a 13:00), también en franjas que cruzan la medianoche.
 - **Pase temporal**: si de verdad necesitas una web bloqueada, pide unos minutos (por defecto 5 min, 2 al día) pagando la misma fricción que para rendirte. Al acabar, la pestaña vuelve sola a la página de foco.
 - **Atajo de teclado**: `Alt+Mayús+F` («F de foco») abre el popup con el cursor en la tarea; Enter empieza la sesión. Se puede cambiar en `brave://extensions/shortcuts`.
-- **YouTube sin distracciones**: bloquea Shorts y oculta el inicio, las recomendaciones y los comentarios, durante el foco o siempre.
+- **Redes sociales sin distracciones**: en YouTube bloquea Shorts y oculta el inicio, las recomendaciones y los comentarios; en Instagram, X, Reddit, Facebook y LinkedIn quita el feed de inicio, los Reels, Explorar o las tendencias. Durante el foco o siempre, cada red por separado.
 - **Pomodoro**: descansos cortos y largos encadenados, con notificaciones.
 - **Fricción para rendirse**: elige qué cuesta terminar antes de tiempo (confirmar, esperar, escribir una frase incómoda o modo estricto).
 - **Sin trampas fáciles**: con el bloqueo activo puedes endurecer las reglas, pero no relajarlas.
@@ -104,8 +104,9 @@ npm run zip:firefox    # genera el .zip de Firefox y el de código fuente para A
 entrypoints/
   background.ts        # decide si hay bloqueo (sesión u horario), aplica reglas, Pomodoro
   youtube.content.ts   # oculta Shorts, inicio, recomendaciones y comentarios
+  feeds.content.ts     # quita el feed de Instagram, X, Reddit, Facebook y LinkedIn
   popup/               # temporizador, perfil, progreso de hoy, empezar/terminar sesión
-  options/             # progreso, perfiles, horarios, YouTube, Pomodoro, fricción, pases, datos
+  options/             # progreso, perfiles, horarios, redes sociales, Pomodoro, fricción, pases, datos
   blocked/             # página que ves al intentar entrar en una web bloqueada (y pase temporal)
 components/            # piezas compartidas (fricción para rendirse o pedir un pase)
 lib/
@@ -121,7 +122,7 @@ lib/
 public/_locales/       # nombre y descripción de la extensión por idioma
 ```
 
-> Los selectores de `youtube.content.ts` dependen del HTML de YouTube. Si YouTube cambia su diseño y algo deja de ocultarse, ese es el archivo que hay que actualizar.
+> Los selectores dependen del HTML de cada web. Si YouTube cambia su diseño y algo deja de ocultarse, el archivo que hay que tocar es `youtube.content.ts`; para el resto de redes, el catálogo `lib/feeds.ts`.
 
 ## Hoja de ruta
 

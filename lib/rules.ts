@@ -12,14 +12,13 @@ export function domainRegex(domain: string): string {
   return `^https?://([^/?#]*\\.)?${escapeRegex(domain)}(:[0-9]+)?([/?#].*)?$`;
 }
 
-export const SHORTS_REGEX = '^https?://([^/?#]*\\.)?youtube\\.com/shorts([/?#].*)?$';
-
 export interface RuleInput {
   /** Bloqueo activo (sesión de foco u horario); null si no hay ninguno. */
   policy: Policy | null;
   /** Dominios con un pase temporal en vigor. */
   passes: string[];
-  blockShorts: boolean;
+  /** URLs de vídeos cortos (Shorts, Reels…) a bloquear; ver activeRedirects() en feeds.ts. */
+  feedRedirects: string[];
 }
 
 /**
@@ -29,7 +28,7 @@ export interface RuleInput {
  * Prioridades (gana la más alta):
  * 1 = bloquear todo (lista blanca)   2 = webs permitidas
  * 3 = webs de lista negra            4 = pases temporales
- * 5 = Shorts (ni la lista blanca ni un pase los desbloquean)
+ * 5 = Shorts, Reels… (ni la lista blanca ni un pase los desbloquean)
  */
 export function buildRules(input: RuleInput, blockedPageUrl: string): Rule[] {
   const redirect = {
@@ -70,11 +69,11 @@ export function buildRules(input: RuleInput, blockedPageUrl: string): Rule[] {
     } as Omit<Rule, 'id'>);
   }
 
-  if (input.blockShorts) {
+  for (const regexFilter of input.feedRedirects) {
     rules.push({
       priority: 5,
       action: redirect,
-      condition: { regexFilter: SHORTS_REGEX, resourceTypes: ['main_frame'] },
+      condition: { regexFilter, resourceTypes: ['main_frame'] },
     } as Omit<Rule, 'id'>);
   }
 

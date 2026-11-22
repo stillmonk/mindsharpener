@@ -12,6 +12,7 @@ import {
 import { normalizeSession, recordFocus, startBreak, startFocus } from '@/lib/session';
 import { findActiveSchedules, scheduleEnd } from '@/lib/schedule';
 import { buildRules } from '@/lib/rules';
+import { activeRedirects } from '@/lib/feeds';
 import {
   coversHost,
   currentPasses,
@@ -104,7 +105,7 @@ export default defineBackground(() => {
       {
         policy,
         passes: passes.active.map((a) => a.domain),
-        blockShorts: settings.youtube.shorts && (state.active || settings.youtube.always),
+        feedRedirects: activeRedirects(settings, state.active),
       },
       browser.runtime.getURL('/blocked.html'),
     );
