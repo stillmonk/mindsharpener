@@ -97,15 +97,15 @@ export function Select<V extends string | number>({
 /** Contenedor con bordes y separadores para filas de Toggle/Select. */
 export function Group({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-line divide-y divide-line overflow-hidden">
+    <div className="rounded-2xl border border-line divide-y divide-line overflow-hidden">
       {children}
     </div>
   );
 }
 
 export const inputClass =
-  'bg-panel border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-edge';
+  'bg-panel border border-line rounded-xl px-3.5 py-2 text-sm outline-none focus:border-edge/60';
 export const primaryBtn =
-  'rounded-lg bg-edge text-ink font-semibold px-4 py-2 text-sm hover:bg-edge-strong disabled:opacity-40 disabled:cursor-not-allowed transition-colors';
+  'rounded-full bg-paper text-ink font-semibold px-5 py-2 text-sm hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors';
 export const ghostBtn =
-  'rounded-lg border border-line px-4 py-2 text-sm hover:border-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors';
+  'rounded-full border border-white/10 px-4 py-2 text-sm text-soft hover:text-paper hover:border-white/25 disabled:opacity-40 disabled:cursor-not-allowed transition-colors';

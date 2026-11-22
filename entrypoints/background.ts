@@ -179,7 +179,10 @@ export default defineBackground(() => {
       kind === 'page'
         ? { contexts: ['page'], documentUrlPatterns: webPages }
         : kind === 'link'
-          ? { contexts: ['link'], targetUrlPatterns: webPages }
+          ? // Sin targetUrlPatterns: con ese filtro el elemento no aparecía al
+            // pulsar sobre enlaces. Los que no son webs (mailto:, javascript:…)
+            // los descarta blockFromMenu con un aviso.
+            { contexts: ['link'] }
           : { contexts: [actionContext] };
     for (const item of items) {
       browser.contextMenus.create({

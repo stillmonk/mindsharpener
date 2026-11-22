@@ -5,8 +5,13 @@ import { useNow } from '@/lib/hooks';
 
 const normalizePhrase = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 
+/** Botón secundario: píldora con borde casi invisible. */
 export const ghostBtn =
-  'rounded-lg border border-line py-2 text-sm text-muted hover:text-paper hover:border-muted transition-colors';
+  'rounded-full border border-white/10 h-11 px-4 text-sm text-soft hover:text-paper hover:border-white/25 disabled:opacity-40 disabled:cursor-not-allowed transition-colors';
+
+/** Botón principal: píldora clara sobre el fondo oscuro. */
+export const primaryPill =
+  'rounded-full bg-paper text-ink font-semibold h-11 px-6 text-sm hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors';
 
 /**
  * Pide la fricción elegida en Ajustes (esperar o escribir una frase) antes de
@@ -64,14 +69,14 @@ export function FrictionGate({
           onDrop={(e) => e.preventDefault()}
           autoComplete="off"
           spellCheck={false}
-          className="bg-panel border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-edge"
+          className="bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3 text-sm outline-none focus:border-edge/60"
         />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-line p-3 w-full">
+    <div className="flex flex-col gap-3 rounded-2xl bg-white/[0.04] p-4 w-full">
       {body}
       <div className="grid grid-cols-2 gap-2">
         <button className={ghostBtn} onClick={onCancel}>
