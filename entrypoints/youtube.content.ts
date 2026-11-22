@@ -15,6 +15,7 @@ html[data-ms-shorts] ytd-video-renderer:has(a[href^="/shorts/"]),
 html[data-ms-shorts] ytd-grid-video-renderer:has(a[href^="/shorts/"]),
 html[data-ms-shorts] ytd-guide-entry-renderer:has(a[title="Shorts"]),
 html[data-ms-shorts] ytd-mini-guide-entry-renderer[aria-label="Shorts"],
+html[data-ms-shorts] ytd-mini-guide-entry-renderer:has(a[href="/shorts/"]),
 html[data-ms-shorts] yt-tab-shape[tab-title="Shorts"],
 html[data-ms-shorts] [data-ms-hide-shorts] {
   display: none !important;

@@ -1,4 +1,14 @@
-import { buildRules, domainRegex, SHORTS_REGEX } from '../lib/rules.ts';
+import { buildRules, domainRegex } from '../lib/rules.ts';
+import {
+  DEFAULT_FEEDS,
+  FEED_SITES,
+  activeRedirects,
+  feedSite,
+  feedSiteForHost,
+  redirectFor,
+  redirectPathRegex,
+  redirectUrlRegex,
+} from '../lib/feeds.ts';
 import { normalizeDomain } from '../lib/domains.ts';
 import { ALLOW_CATEGORIES, BLOCK_CATEGORIES, missingDomains } from '../lib/categories.ts';
 import { domainToBlock, menuItems, parseMenuId } from '../lib/menus.ts';
@@ -36,7 +46,7 @@ for (const [url, want] of [
 ] as const) check(`dominio ${url}`, re.test(url), want);
 
 // Shorts
-const sr = new RegExp(SHORTS_REGEX, 'i');
+const sr = new RegExp(redirectUrlRegex(feedSite('youtube'), feedSite('youtube').options[0]!), 'i');
 check('shorts', sr.test('https://www.youtube.com/shorts/abc'), true);
 check('shorts sin barra', sr.test('https://youtube.com/shorts'), true);
 check('video normal', sr.test('https://www.youtube.com/watch?v=shorts'), false);
@@ -45,24 +55,25 @@ check('canal "shortsfan"', sr.test('https://www.youtube.com/shortsfan'), false);
 // Construcción de reglas
 const bl = (blocklist: string[]) => ({ id: 'b', name: 'b', mode: 'blocklist' as const, blocklist, allowlist: [] });
 const al = (allowlist: string[]) => ({ id: 'a', name: 'a', mode: 'allowlist' as const, blocklist: [], allowlist });
-const none = { passes: [], blockShorts: false };
+const SHORTS = [redirectUrlRegex(feedSite('youtube'), feedSite('youtube').options[0]!)];
+const none = { passes: [], feedRedirects: [] };
 check('inactivo = 0 reglas', buildRules({ ...none, policy: effectivePolicy([]) }, 'x').length, 0);
 check('lista negra = 2 reglas', buildRules({ ...none, policy: effectivePolicy([bl(['a.com', 'b.com'])]) }, 'x').length, 2);
-const allow = buildRules({ policy: effectivePolicy([al(['work.com'])]), passes: [], blockShorts: true }, 'x');
+const allow = buildRules({ policy: effectivePolicy([al(['work.com'])]), passes: [], feedRedirects: SHORTS }, 'x');
 check('lista blanca: prioridades', allow.map((r) => [r.action.type, r.priority]), [
   ['redirect', 1],
   ['allow', 2],
   ['redirect', 5],
 ]);
 check('ids únicos', new Set(allow.map((r) => r.id)).size, allow.length);
-check('solo shorts fuera del foco', buildRules({ policy: null, passes: [], blockShorts: true }, 'x').length, 1);
-const withPass = buildRules({ policy: effectivePolicy([bl(['a.com'])]), passes: ['a.com'], blockShorts: true }, 'x');
+check('solo shorts fuera del foco', buildRules({ policy: null, passes: [], feedRedirects: SHORTS }, 'x').length, 1);
+const withPass = buildRules({ policy: effectivePolicy([bl(['a.com'])]), passes: ['a.com'], feedRedirects: SHORTS }, 'x');
 check('pase gana al bloqueo, no a Shorts', withPass.map((r) => [r.action.type, r.priority]), [
   ['redirect', 3],
   ['allow', 4],
   ['redirect', 5],
 ]);
-check('pase sin bloqueo = ignorado', buildRules({ policy: null, passes: ['a.com'], blockShorts: false }, 'x').length, 0);
+check('pase sin bloqueo = ignorado', buildRules({ policy: null, passes: ['a.com'], feedRedirects: [] }, 'x').length, 0);
 check('redirección conserva la URL', (allow[0]!.action.redirect as any).regexSubstitution, 'x#\\0');
 
 // Perfiles combinados: gana lo más estricto
@@ -148,6 +159,36 @@ check('bloquear: chrome://', domainToBlock('chrome://extensions'), null);
 check('bloquear: file://', domainToBlock('file:///home/a.html'), null);
 check('bloquear: localhost', domainToBlock('http://localhost:3000/'), null);
 check('bloquear: sin url', domainToBlock(undefined), null);
+
+// Feeds de redes sociales
+const fakeSettings = (over: Record<string, unknown> = {}) =>
+  ({
+    youtube: { shorts: true, home: true, recommendations: true, comments: false, always: false },
+    feeds: structuredClone(DEFAULT_FEEDS),
+    ...over,
+  }) as any;
+check('host: www.instagram.com', feedSiteForHost('www.instagram.com')?.id, 'instagram');
+check('host: old.reddit.com', feedSiteForHost('old.reddit.com')?.id, 'reddit');
+check('host: twitter.com = x', feedSiteForHost('mobile.twitter.com')?.id, 'x');
+check('host: notx.com', feedSiteForHost('notx.com'), undefined);
+check('ids de opción únicos por red', FEED_SITES.every((s) => new Set(s.options.map((o) => o.key)).size === s.options.length), true);
+check('cada red tiene ajustes por defecto', FEED_SITES.filter((s) => s.id !== 'youtube').every((s) => s.options.every((o) => typeof (DEFAULT_FEEDS as any)[s.id][o.key] === 'boolean')), true);
+check('sin foco ni «siempre» = sin redirecciones', activeRedirects(fakeSettings(), false).length, 0);
+check('en foco = Shorts, Reels, vídeo FB', activeRedirects(fakeSettings(), true).length, 3);
+const ig = fakeSettings({ feeds: { ...DEFAULT_FEEDS, instagram: { ...DEFAULT_FEEDS.instagram, always: true } } });
+check('reel suelto', redirectFor('https://www.instagram.com/reel/abc/', ig, false)?.site.id, 'instagram');
+check('pestaña Reels', redirectFor('https://www.instagram.com/reels/', ig, false)?.option.key, 'reels');
+check('perfil "reelsfan" no', redirectFor('https://www.instagram.com/reelsfan/', ig, false), null);
+check('post normal no', redirectFor('https://www.instagram.com/p/abc/', ig, false), null);
+check('shorts en foco', redirectFor('https://m.youtube.com/shorts/x', fakeSettings(), true)?.site.id, 'youtube');
+check('shorts fuera del foco no', redirectFor('https://m.youtube.com/shorts/x', fakeSettings(), false), null);
+check('fb watch', redirectFor('https://www.facebook.com/watch/?v=1', fakeSettings(), true)?.site.id, 'facebook');
+const igReels = feedSite('instagram').options.find((o) => o.key === 'reels')!;
+check('ruta /reels/ (SPA)', redirectPathRegex(igReels).test('/reels/'), true);
+check('ruta /reelsfan (SPA)', redirectPathRegex(igReels).test('/reelsfan'), false);
+const rdHome = new RegExp(feedSite('reddit').options[0]!.page!.path, 'i');
+check('reddit portada', ['/', '/best/', '/r/popular/', '/r/all'].map((p) => rdHome.test(p)), [true, true, true, true]);
+check('reddit subreddit no', ['/r/typescript/', '/r/allergies/', '/user/x'].map((p) => rdHome.test(p)), [false, false, false]);
 
 if (fail) throw new Error(`${fail} pruebas fallidas`);
 console.log('\nTodo OK');

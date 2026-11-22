@@ -1,52 +1,95 @@
+import { useState } from 'react';
 import {
   FRICTIONS,
   updateSettings,
+  type FeedSiteSettings,
   type Friction,
   type Lang,
+  type Profile,
   type Settings,
-  type YoutubeSettings,
 } from '@/lib/storage';
+import { FEED_SITES, feedPrefs, feedSite, patchFeedPrefs, type FeedSiteId } from '@/lib/feeds';
 import type { Key, T } from '@/lib/i18n';
 import { Group, Section, Select, Toggle } from './ui';
 
-export function YoutubePrefs({
+export function FeedPrefs({
   settings,
-  youtubeFullyBlocked,
+  profiles,
   locked,
   t,
 }: {
   settings: Settings;
-  youtubeFullyBlocked: boolean;
+  profiles: Profile[];
   locked: boolean;
   t: T;
 }) {
-  const yt = settings.youtube;
-  const set = (patch: Partial<YoutubeSettings>) =>
-    updateSettings({ youtube: { ...yt, ...patch } });
-  // Durante el bloqueo se pueden activar, pero no desactivar.
-  const offLocked = (on: boolean) => locked && on;
+  const [siteId, setSiteId] = useState<FeedSiteId>('youtube');
+  const site = feedSite(siteId);
+  const prefs = feedPrefs(settings, siteId);
+  const set = (patch: FeedSiteSettings) => updateSettings(patchFeedPrefs(settings, siteId, patch));
+  const onCount = (id: FeedSiteId) => {
+    const p = feedPrefs(settings, id);
+    return feedSite(id).options.filter((o) => p[o.key]).length;
+  };
+  // ¿Algún perfil la bloquea entera durante el foco?
+  const fullyBlocked = profiles.some((p) =>
+    p.mode === 'blocklist'
+      ? site.domains.some((d) => p.blocklist.includes(d))
+      : !site.domains.some((d) => p.allowlist.includes(d)),
+  );
 
-  const rows: { key: keyof YoutubeSettings; label: Key }[] = [
-    { key: 'shorts', label: 'ytShorts' },
-    { key: 'home', label: 'ytHome' },
-    { key: 'recommendations', label: 'ytRecs' },
-    { key: 'comments', label: 'ytComments' },
-  ];
+  const tab = (active: boolean) =>
+    `shrink-0 rounded-full border px-3.5 py-1.5 text-sm transition-colors flex items-center gap-2 ${
+      active ? 'border-edge bg-edge/10 text-edge' : 'border-line bg-panel hover:border-muted'
+    }`;
 
   return (
-    <Section title={t('ytTitle')} desc={youtubeFullyBlocked ? t('ytFullyBlocked') : t('ytDesc')}>
-      <Group>
-        {rows.map((r) => (
+    <Section title={t('feedsTitle')} desc={t('feedsDesc')}>
+      <div role="tablist" className="flex gap-2 overflow-x-auto pb-1 -mb-1">
+        {FEED_SITES.map((s) => {
+          const n = onCount(s.id);
+          return (
+            <button
+              key={s.id}
+              role="tab"
+              aria-selected={s.id === siteId}
+              onClick={() => setSiteId(s.id)}
+              className={tab(s.id === siteId)}
+            >
+              {s.name}
+              {n > 0 && (
+                <span
+                  className="h-1.5 w-1.5 rounded-full bg-edge"
+                  title={t('feedsOnN', { n })}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div role="tabpanel" className="flex flex-col gap-3">
+        {fullyBlocked && (
+          <p className="text-sm text-muted">{t('feedsFullyBlocked', { name: site.name })}</p>
+        )}
+        <Group>
+          {site.options.map((o) => (
+            <Toggle
+              key={o.key}
+              label={t(o.label)}
+              checked={prefs[o.key] === true}
+              // Durante el bloqueo se pueden activar, pero no desactivar.
+              disabled={locked && prefs[o.key] === true}
+              onChange={(v) => set({ [o.key]: v })}
+            />
+          ))}
           <Toggle
-            key={r.key}
-            label={t(r.label)}
-            checked={yt[r.key]}
-            disabled={offLocked(yt[r.key])}
-            onChange={(v) => set({ [r.key]: v })}
+            label={t('feedsAlways')}
+            checked={prefs.always === true}
+            onChange={(v) => set({ always: v })}
           />
-        ))}
-        <Toggle label={t('ytAlways')} checked={yt.always} onChange={(v) => set({ always: v })} />
-      </Group>
+        </Group>
+      </div>
     </Section>
   );
 }

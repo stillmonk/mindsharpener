@@ -17,7 +17,7 @@ import {
   LanguagePrefs,
   PassPrefs,
   PomodoroPrefs,
-  YoutubePrefs,
+  FeedPrefs,
 } from './Preferences';
 import { Backup } from './Data';
 import { ProgressPanel } from './Progress';
@@ -50,10 +50,6 @@ export default function App() {
   const locked = state.active;
   const activeIds = state.active ? (state.profileIds ?? []) : [];
 
-  const youtubeFullyBlocked = profiles.some((p) =>
-    p.mode === 'blocklist' ? p.blocklist.includes('youtube.com') : !p.allowlist.includes('youtube.com'),
-  );
-
   return (
     <main className="max-w-2xl mx-auto px-4 py-10 flex flex-col gap-10">
       <header className="flex flex-col gap-1">
@@ -79,12 +75,7 @@ export default function App() {
 
       <ProfilesSection profiles={profiles} schedules={schedules} activeIds={activeIds} t={t} />
       <Schedules schedules={schedules} profiles={profiles} locked={locked} t={t} />
-      <YoutubePrefs
-        settings={settings}
-        youtubeFullyBlocked={youtubeFullyBlocked}
-        locked={locked}
-        t={t}
-      />
+      <FeedPrefs settings={settings} profiles={profiles} locked={locked} t={t} />
       <PomodoroPrefs settings={settings} t={t} />
       <FrictionPrefs settings={settings} locked={locked} t={t} />
       <PassPrefs settings={settings} locked={locked} t={t} />

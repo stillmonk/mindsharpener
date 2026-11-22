@@ -3,13 +3,13 @@ import { blockingStateItem, historyItem, passesItem, sessionItem, type Settings 
 import { formatMinutes, formatRemaining, normalizeSession, recordBlocked } from '@/lib/session';
 import { currentPasses, dayKey, type PassResponse } from '@/lib/policy';
 import { hostnameOf } from '@/lib/domains';
+import { redirectFor } from '@/lib/feeds';
 import { useNow, useSettings, useStorageItem, useT } from '@/lib/hooks';
 import type { Key, T } from '@/lib/i18n';
 import { FrictionGate, primaryPill } from '@/components/FrictionGate';
 import { Ring } from '@/components/Ring';
 
 const QUOTES: Key[] = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'];
-const SHORTS_RE = /^https?:\/\/([^/?#]*\.)?youtube\.com\/shorts/i;
 const isTopFrame = window.top === window;
 
 export default function App() {
@@ -43,10 +43,10 @@ export default function App() {
   }
 
   const session = rawSession ? normalizeSession(rawSession) : null;
-  const shortsBlocked =
-    SHORTS_RE.test(originalUrl) &&
-    settings.youtube.shorts &&
-    (state.active || settings.youtube.always);
+  // Shorts, Reels…: se bloquean aunque no haya sesión si así se eligió.
+  const feed = redirectFor(originalUrl, settings, state.active);
+  const shortsBlocked = feed !== null;
+  const noun = feed?.option.redirect ? t(feed.option.redirect.noun) : '';
   const blocked = (state.active && (!state.until || state.until > now)) || shortsBlocked;
 
   const closeTab = async () => {
@@ -77,7 +77,7 @@ export default function App() {
     ? state.source === 'schedule'
       ? t('bScheduled')
       : t('bInFocus')
-    : t('bShorts');
+    : t('bShorts', { name: noun });
 
   // Cuánto falta y qué fracción del bloqueo ha pasado (si sabemos cuándo empezó).
   const until = state.active ? state.until : undefined;
@@ -92,7 +92,7 @@ export default function App() {
         <Eyebrow color="edge">{label}</Eyebrow>
         <h1 className="text-[40px] font-light leading-tight tracking-tight max-w-lg">
           {shortsBlocked ? (
-            t('bShortsTitle')
+            t('bShortsTitle', { name: noun })
           ) : host ? (
             <>
               <span className="text-muted">{host}</span> {t('canWait')}
