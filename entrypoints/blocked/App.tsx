@@ -168,7 +168,7 @@ function PassRequest({ settings, url, now, t }: { settings: Settings; url: strin
   };
 
   return (
-    <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+    <div className="flex flex-col items-center gap-2 w-full max-w-sm">
       {open ? (
         <FrictionGate
           settings={settings}
