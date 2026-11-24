@@ -25,6 +25,8 @@ await new Promise((r) => (ws.onopen = r));
 const send = (method, params = {}, sessionId) =>
   new Promise((r) => { const i = ++id; pend.set(i, r); ws.send(JSON.stringify({ id: i, method, params, sessionId })); });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const FONT = pathToFileURL(path.resolve('node_modules/@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2')).href;
+const FONT_CSS = `@font-face{font-family:Manrope;font-weight:200 800;src:url('${FONT}') format('woff2-variations')}`;
 const evalIn = async (sid, expr) => {
   const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true }, sid);
   if (r.result?.exceptionDetails) throw new Error(JSON.stringify(r.result.exceptionDetails));
@@ -42,6 +44,13 @@ await send('Page.enable', {}, P);
 const viewport = (width, height, dpr = 1) =>
   send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: dpr, mobile: false }, P);
 const go = async (url, wait = 1800) => { await send('Page.navigate', { url }, P); await sleep(wait); };
+// Espera a que la página pinte algo concreto (React carga el almacenamiento de forma asíncrona).
+const waitFor = async (expr, ms = 8000) => {
+  for (const end = Date.now() + ms; Date.now() < end; await sleep(150)) {
+    if (await evalIn(P, `!!(${expr})`).catch(() => false)) return;
+  }
+  throw new Error(`No apareció: ${expr}`);
+};
 const shot = async (file, clip) => {
   const r = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: !!clip, ...(clip ? { clip: { ...clip, scale: 1 } } : {}) }, P);
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -82,6 +91,7 @@ for (let off = 1; off <= 30; off++) {
   const focus = weekend && rand() < 0.6 ? 0 : Math.round((60 + rand() * 120) / 5) * 5;
   if (focus) history[d.toLocaleDateString('sv')] = { focus, sessions: Math.max(1, Math.round(focus / 45)), blocked: Math.round(rand() * 9) };
 }
+history[new Date().toLocaleDateString('sv')] = { focus: 75, sessions: 2, blocked: 3 }; // hoy, para que el popup no salga a cero
 for (const off of [1, 2, 3, 4]) { // racha reciente
   const d = new Date(); d.setDate(d.getDate() - off);
   history[d.toLocaleDateString('sv')] = { focus: 125 + off * 10, sessions: 3, blocked: 4 };
@@ -89,13 +99,14 @@ for (const off of [1, 2, 3, 4]) { // racha reciente
 
 function compose(file, [title, sub], imgPath, imgWidth) {
   const html = `<!doctype html><meta charset="utf-8"><style>
-    html,body{margin:0;width:1280px;height:800px;background:#141210;color:#f3eee7;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden}
+    ${FONT_CSS}
+    html,body{margin:0;width:1280px;height:800px;background:radial-gradient(120% 80% at 30% 0%,#1e2635 0%,#0c1016 70%);color:#eceef2;font-family:Manrope,system-ui,sans-serif;overflow:hidden}
     .wrap{display:flex;align-items:center;gap:64px;height:100%;padding:0 80px;box-sizing:border-box}
     .text{flex:1;min-width:0}
-    .brand{font-size:20px;font-weight:600;letter-spacing:-.01em;margin-bottom:40px}.brand span{color:#f5b83d}
-    h1{font-size:46px;line-height:1.1;margin:0 0 20px;font-weight:650;letter-spacing:-.02em}
-    p{font-size:21px;line-height:1.5;color:#a39b91;margin:0}
-    .shot{flex:none;width:${imgWidth}px;border:1px solid #2f2a25;border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+    .brand{font-size:20px;font-weight:600;letter-spacing:-.01em;margin-bottom:40px}.brand span{color:#e8b65a}
+    h1{font-size:46px;line-height:1.1;margin:0 0 20px;font-weight:600;letter-spacing:-.02em}
+    p{font-size:21px;line-height:1.5;color:#a9b2c0;margin:0}
+    .shot{flex:none;width:${imgWidth}px;border:1px solid #262d3a;border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
     .shot img{display:block;width:100%}
   </style><div class="wrap"><div class="text"><div class="brand">Mind<span>Sharpener</span></div><h1>${title}</h1><p>${sub}</p></div>
   <div class="shot"><img src="${pathToFileURL(imgPath)}"></div></div>`;
@@ -107,6 +118,7 @@ for (const lang of ['es', 'en']) {
   const dir = path.join(OUT, lang);
   const now = Date.now();
   await evalIn(S, `chrome.storage.local.clear()`);
+  await sleep(1000); // el background recrea los valores por defecto al vaciarse; que no pise los de ejemplo
   await evalIn(S, `chrome.storage.local.set(${JSON.stringify({
     profiles: [
       { id: 'general', name: T.profiles[0], mode: 'blocklist', blocklist: ['youtube.com', 'instagram.com', 'tiktok.com', 'x.com', 'reddit.com', 'twitch.tv'], allowlist: [] },
@@ -132,6 +144,7 @@ for (const lang of ['es', 'en']) {
   await evalIn(P, `[...document.querySelectorAll('button')].find(b => /min$/.test(b.textContent.trim()) && b.className.includes('underline')).click()`);
   await sleep(400);
   await evalIn(P, `(() => { const i = document.querySelector('input'); const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; set.call(i, ${JSON.stringify(lang === 'es' ? 'Elijo distraerme en lugar' : 'I choose distraction')}); i.dispatchEvent(new Event('input', { bubbles: true })); })()`);
+  await evalIn(P, `document.documentElement.style.scrollbarWidth = 'none'`);
   await sleep(300);
   await shot(path.join(dir, '5-pass.png'));
 
@@ -139,6 +152,10 @@ for (const lang of ['es', 'en']) {
   await evalIn(S, `chrome.storage.local.set({ session: null })`);
   await viewport(320, 600, 2);
   await go(`chrome-extension://${extId}/popup.html`);
+  await waitFor(`document.body.firstElementChild?.firstElementChild`);
+  await sleep(600);
+  // El atajo lo da el navegador en su idioma; en inglés se vería «Shift».
+  if (lang === 'en') await evalIn(P, `(() => { const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); while (w.nextNode()) w.currentNode.nodeValue = w.currentNode.nodeValue.replace('Mayús', 'Shift'); })()`);
   const popupH = await evalIn(P, `document.body.firstElementChild.firstElementChild.getBoundingClientRect().height`);
   const popupRaw = path.join(TMP, `${lang}-popup.png`);
   await shot(popupRaw, { x: 0, y: 0, width: 320, height: Math.ceil(popupH) });
@@ -146,7 +163,9 @@ for (const lang of ['es', 'en']) {
   // 3 y 4. Ajustes: progreso y perfiles.
   await evalIn(S, `chrome.storage.local.set({ session: ${JSON.stringify({ kind: 'focus', startedAt: now - 30 * 60000, endsAt: now + 20 * 60000, task: T.task, cycle: 1, focusMinutes: 50, profileId: 'general' })} })`);
   await viewport(760, 2600, 2);
-  await go(`chrome-extension://${extId}/options.html`, 2200);
+  await go(`chrome-extension://${extId}/options.html`, 1000);
+  await waitFor(`document.querySelectorAll('section')[1]?.querySelectorAll('button[aria-pressed]').length >= 3`);
+  await sleep(600);
   await evalIn(P, `[...document.querySelectorAll('button[aria-pressed]')].find(b => b.textContent.includes('30')).click()`);
   await sleep(400);
   const progressRaw = path.join(TMP, `${lang}-progress.png`);
@@ -174,10 +193,11 @@ for (const lang of ['es', 'en']) {
   // Imagen promocional pequeña 440x280.
   const tile = path.join(TMP, `${lang}-tile.html`);
   fs.writeFileSync(tile, `<!doctype html><meta charset="utf-8"><style>
-    html,body{margin:0;width:440px;height:280px;background:#141210;color:#f3eee7;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden}
-    .w{height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 40px;box-sizing:border-box;gap:14px;border-left:6px solid #f5b83d}
-    .b{font-size:34px;font-weight:650;letter-spacing:-.02em}.b span{color:#f5b83d}
-    p{margin:0;font-size:19px;line-height:1.35;color:#a39b91}
+    ${FONT_CSS}
+    html,body{margin:0;width:440px;height:280px;background:radial-gradient(120% 90% at 20% 0%,#1e2635 0%,#0c1016 75%);color:#eceef2;font-family:Manrope,system-ui,sans-serif;overflow:hidden}
+    .w{height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 40px;box-sizing:border-box;gap:14px;border-left:6px solid #e8b65a}
+    .b{font-size:34px;font-weight:600;letter-spacing:-.02em}.b span{color:#e8b65a}
+    p{margin:0;font-size:19px;line-height:1.35;color:#a9b2c0}
   </style><div class="w"><div class="b">Mind<span>Sharpener</span></div><p>${T.tile[0]}<br>${T.tile[1]}</p></div>`);
   await viewport(440, 280, 1);
   await go(pathToFileURL(tile).href, 600);
